@@ -1,0 +1,70 @@
+MIT License
+
+Copyright (c) 2025 Sebastiano Franchini
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Additional Disclaimers
+
+### System Modification Warning
+This guide contains commands and procedures that modify system configurations. 
+Users execute these commands at their own risk. The authors and contributors 
+are not responsible for:
+
+- Data loss or corruption
+- System instability or failure
+- Hardware damage
+- Any other issues arising from following this guide
+
+### Best Practices
+Always:
+- Create system backups (Timeshift snapshots) before major changes
+- Test commands in a virtual machine when possible
+- Understand what each command does before executing it
+- Verify commands from trusted sources only
+- Keep your system backed up regularly
+
+### Hardware Compatibility
+This guide has been tested on specific hardware configurations (Acer Swift 3 SF314, 
+ASUS TUF F15). Results may vary with different hardware. Hardware-specific sections 
+may require adjustments for your particular setup.
+
+### Third-Party Software
+This guide references and provides installation instructions for third-party software. 
+Users should review the licenses and terms of service for all software they install. 
+The authors of this guide are not affiliated with or responsible for third-party 
+software mentioned herein.
+
+### Official Documentation
+Always refer to official documentation when available:
+- [Ubuntu Documentation](https://help.ubuntu.com/)
+- [NVIDIA Documentation](https://docs.nvidia.com/)
+- Individual software project documentation
+
+### Security Considerations
+Commands requiring `sudo` grant administrative privileges. Always:
+- Verify the source of commands before executing
+- Understand what privileges are being granted
+- Use trusted repositories and official sources
+- Keep your system updated with security patches
+
+By using this guide, you acknowledge these disclaimers and agree to use the 
+information at your own risk and discretion.
