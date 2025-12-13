@@ -1701,7 +1701,7 @@ This guide is provided under MIT License - free to use, modify, and distribute w
 - **v1.0** (Initial): Basic Ubuntu setup guide
 - **v2.0** (Current): Complete rewrite with hardware-specific configs, terminal basics, UV/Python, NVIDIA/CUDA, ASUS tools, and comprehensive references
 
-**Last updated**: December 2024
+**Last updated**: December 2025
 
 ---
 
