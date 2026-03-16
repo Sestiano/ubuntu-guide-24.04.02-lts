@@ -1,6 +1,6 @@
 # Ubuntu 24.04 LTS Complete Setup Guide
 
-> **⚠️ Important Notice**: This guide is comprehensive but not necessarily in perfect sequential order. Please read through sections before executing commands. Some steps require specific ordering (especially Steps 1-3). When in doubt, test commands in a virtual machine first using for example GNOME Boxes.
+> **⚠️ Important Notice**: Currently I'm revising all the guide after testing on a new laptop and finding that not all of the commands are working as expected, I'm sorry for this, I renew the invite to test all it in a close/debug environment before modifying your actual daily driver system. This guide is comprehensive but not necessarily in perfect sequential order. Please read through sections before executing commands. Some steps require specific ordering (especially Steps 1-3). When in doubt, test commands in a virtual machine first using for example GNOME Boxes.
 
 > **🔒 Security Warning**: Commands with `sudo` grant administrative privileges and can modify your system. Always verify commands before executing them, especially from internet sources. This guide has been tested on Acer Swift 3 SF314 and ASUS TUF F15 (RTX 4070 Mobile) but hardware variations may require adjustments.
 
