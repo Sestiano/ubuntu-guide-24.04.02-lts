@@ -64,7 +64,7 @@ sudo apt upgrade             # upgrade installed packages
 sudo apt install package     # install
 sudo apt remove package      # remove
 sudo apt autoremove          # clean unused dependencies
-
+```
 
 ### Useful tricks
 
@@ -100,8 +100,7 @@ Register at [ubuntu.com/pro](https://ubuntu.com/pro) to enable Livepatch: receiv
 sudo apt update && sudo apt upgrade -y   # update the system and apt packages
 sudo snap refresh                        # update snap packages (you can remove snapd if you want)
 sudo reboot                              # reboot system to apply the updates
-
--y is there to automatically accept the upgrade, if you don't write -y, it will be simply asked if you want to proceed with a Y/n choice.
+# -y automatically accepts the upgrade; without it you are asked to confirm with Y/n
 
 # after reboot
 sudo apt autoremove -y
@@ -163,7 +162,7 @@ sudo apt install unrar p7zip-full p7zip-rar -y
 
 ### NVIDIA GPU (for laptops like ASUS TUF F15)
 
-If your are in WSL2 on Windows go directly to CUDA Toolkit, you have to install NVIDIA drivers on Windows.
+If you are in WSL2 on Windows go directly to CUDA Toolkit, you have to install NVIDIA drivers on Windows.
 
 **Option 1 — Ubuntu Driver Manager (recommended for beginners)**
 
@@ -176,8 +175,6 @@ Select the recommended proprietary driver, apply and reboot.
 **Option 2 — Command line**
 
 ```bash
-sudo add-apt-repository ppa:graphics-drivers/ppa -y
-sudo apt update
 sudo ubuntu-drivers install
 sudo reboot
 
@@ -194,9 +191,9 @@ sudo apt install nvidia-cuda-toolkit -y
 nvcc --version
 ```
 
-For a specific CUDA version, download directly from [developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads).
+The apt package installs into `/usr/bin`, so no PATH changes are needed.
 
-Add CUDA to your PATH in `~/.zshrc` or `~/.bashrc`:
+For a specific CUDA version, download directly from [developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads). Only in that case, add CUDA to your PATH in `~/.zshrc` or `~/.bashrc`:
 
 ```bash
 export PATH=/usr/local/cuda/bin:$PATH
@@ -260,7 +257,7 @@ Zsh has smarter autocompletion, themes, and a rich plugin ecosystem compared to 
 
 ```bash
 sudo apt install zsh -y
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
 **Recommended plugins**:
@@ -289,9 +286,8 @@ plugins=(
 ```
 
 ```bash
-source ~/.zshrc
 chsh -s $(which zsh)    # set zsh as the default shell
-sudo reboot
+sudo reboot             # zsh loads ~/.zshrc automatically at the next login
 ```
 
 ### Additional tools
@@ -332,8 +328,8 @@ source ~/.zshrc
 A good programming font improves readability and supports ligatures. Download [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) or [Fira Code](https://github.com/tonsky/FiraCode), then:
 
 ```bash
-mkdir -p ~/.fonts
-cp ~/Downloads/JetBrainsMono-*.ttf ~/.fonts/
+mkdir -p ~/.local/share/fonts
+cp ~/Downloads/JetBrainsMono-*.ttf ~/.local/share/fonts/
 fc-cache -f -v
 ```
 
@@ -539,28 +535,27 @@ sudo systemctl start docker
 docker --version
 docker run hello-world
 
-sudo apt install docker-compose -y
+sudo apt install docker-compose-v2 -y   # provides `docker compose`
 ```
 
 ### Local AI with llama.cpp
 
 Run language models directly on your machine: no internet, no API key, no data sent anywhere.
-I also suggest to start with a GUI app such as LM Studio (you can install it as an appimage app). This app include a lot of functions and the possibility to check before the download if the model is gonna run on your machine.
+I also suggest starting with a GUI app such as LM Studio (available as an AppImage). It includes many features and shows, before downloading, whether a model will run on your machine.
 
 Install llama.cpp:
 ```bash
 cd ~
-git clone https://github.com/ggerganov/llama.cpp
+git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 
 sudo apt install cmake libcurl4-openssl-dev -y
 
 # Build with CUDA (NVIDIA GPU)
-mkdir build && cd build
-cmake .. -DGGML_CUDA=ON
-cmake --build . --config Release -j$(nproc)
+cmake -B build -DGGML_CUDA=ON
+cmake --build build --config Release -j$(nproc)
 
-# CPU-only build: remove the -DGGML_CUDA=ON line
+# CPU-only build: omit the -DGGML_CUDA=ON flag
 ```
 
 ---
@@ -588,10 +583,10 @@ GRUB_DEFAULT=saved          # remember last choice
 GRUB_SAVEDEFAULT=true
 GRUB_TIMEOUT=5              # seconds to wait
 GRUB_TIMEOUT_STYLE=hidden   # hide menu (press ESC to show it)
-GRUB_HIDDEN_TIMEOUT_QUIET=false
 GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 GRUB_CMDLINE_LINUX=""
+GRUB_DISABLE_OS_PROBER=false   # detect Windows (disabled by default on 24.04)
 ```
 
 **Apply changes**:
@@ -623,8 +618,6 @@ GRUB_TIMEOUT_STYLE=menu
 # Show all kernels in the main menu
 GRUB_DISABLE_SUBMENU=y
 ```
-
-For a graphical interface, GRUB Customizer is on Flathub: `flatpak install flathub com.github.grub-customizer.GrubCustomizer -y`.
 
 ---
 
@@ -748,8 +741,18 @@ Ctrl+B [        scroll mode (q to exit)
 ```bash
 ssh user@ip-address
 ssh -p 2222 user@server           # specific port
+```
 
 Configure `~/.ssh/config` to avoid remembering IPs and options:
+
+```
+Host myserver
+    HostName 192.168.1.10
+    User user
+    Port 2222
+```
+
+Then connect with `ssh myserver`.
 
 ### System monitoring
 
@@ -854,12 +857,12 @@ sudo apt install cuda-toolkit-12-6 -y
 nvidia-smi    # verify
 ```
 
-**Enable TRIM for SSDs**
-(Only tested on the Acer)
-
-```bash
-sudo systemctl enable fstrim.timer && sudo systemctl start fstrim.timer
-```
 ---
 
-*Guide in progress — last updated: April 2026*
+## Disclaimer
+
+The commands in this guide modify your system: you run them at your own risk, and I am not responsible for data loss, system instability or hardware damage. Back up with Timeshift before major changes, test in a VM when possible, and refer to the official documentation ([Ubuntu](https://help.ubuntu.com/), [NVIDIA](https://docs.nvidia.com/)) and to the licenses of the third-party software you install.
+
+---
+
+*Guide in progress — last updated: September 2026*
