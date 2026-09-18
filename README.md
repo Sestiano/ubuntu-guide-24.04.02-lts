@@ -1,8 +1,10 @@
 # Ubuntu 24.04 LTS — Complete Setup Guide
 
-> ⚠️ **Important**: this guide is under continuous revision. Not all commands have been tested on every hardware configuration, therefore before running anything on your main system, try it in a VM first (e.g. GNOME Boxes). Commands with `sudo` modify your system: always read them before running.
+> ⚠️ **Important**: this guide is under continuous revision. I tested almost every command on my laptops, but hardware varies: before running anything on your main system, try it in a VM first (e.g. GNOME Boxes). Commands with `sudo` modify your system: always read them before running.
 >
-> Tested on: Acer Swift 3 SF314, ASUS TUF F15 (RTX 4070 Mobile).
+> Tested on: Acer Swift 3 SF314, ASUS TUF F15 (RTX 4070 Laptop GPU).
+>
+> Written and tested on Ubuntu 24.04 LTS. Most commands should also work on Ubuntu 26.04 LTS, but I haven't tested them there.
 
 ---
 
@@ -76,18 +78,19 @@ sudo apt autoremove          # clean unused dependencies
 
 ### Why Ubuntu 24.04 LTS?
 
-It's the easiest option for anyone who wants stability without chasing updates every six months. Support is guaranteed until 2029, the community is huge, and almost everything works out of the box.
+It's the easiest option for anyone who wants stability without chasing updates every six months. Standard support lasts until May 2029 (until 2034 with Ubuntu Pro), the community is huge, and almost everything works out of the box.
 
-If you're already comfortable with Linux and want something more cutting-edge: Fedora Workstation is excellent. If you want something Ubuntu-like but lighter: Linux Mint (currently still X11-based, Wayland support expected around 2027).
+I wrote this guide when 24.04 was the latest LTS. Ubuntu 26.04 LTS came out in April 2026.
+
+If you're already comfortable with Linux and want something more cutting-edge: Fedora Workstation is excellent. If you want something Ubuntu-like but lighter: Linux Mint.
 
 ### Installation
 
-1. Download Ubuntu 24.04 LTS from the [official website](https://ubuntu.com/download/desktop)
+1. Download Ubuntu 24.04 LTS from [releases.ubuntu.com/24.04](https://releases.ubuntu.com/24.04/) (the main download page now offers 26.04)
 2. Create a bootable USB with [Balena Etcher](https://etcher.balena.io/) or [Rufus](https://rufus.ie/) (Windows only)
-3. Enter your BIOS (usually F2, F12, Del or Esc at boot, it depends on the manufacturer), temporarily disable Secure Boot, and set the USB as the first boot device
+3. Enter your BIOS (usually F2, F12, Del or Esc at boot, it depends on the manufacturer) and set the USB as the first boot device. Secure Boot can stay enabled: Ubuntu supports it. If you dual-boot and Windows uses BitLocker (device encryption), save the recovery key before changing anything in the BIOS
 4. Boot from USB, choose "Try or Install Ubuntu"
-5. Select "Extended selection" for more preinstalled apps, and enable third-party repositories (important for codecs and drivers but fixable later)
-
+5. Select "Extended selection" for more preinstalled apps, and enable "Install third-party software for graphics and Wi-Fi hardware" and "Download and install support for additional media formats" (important for drivers and codecs, but fixable later). If the installer asks for a Secure Boot password, choose one: at the first reboot select "Enroll MOK" and enter it
 
 ### After installation — follow this order
 
@@ -97,10 +100,10 @@ Register at [ubuntu.com/pro](https://ubuntu.com/pro) to enable Livepatch: receiv
 **2. System updates**
 
 ```bash
-sudo apt update && sudo apt upgrade -y   # update the system and apt packages
-sudo snap refresh                        # update snap packages (you can remove snapd if you want)
-sudo reboot                              # reboot system to apply the updates
 # -y automatically accepts the upgrade; without it you are asked to confirm with Y/n
+sudo apt update && sudo apt upgrade -y   # update the system and apt packages
+sudo snap refresh                        # update snap packages
+sudo reboot                              # reboot system to apply the updates
 
 # after reboot
 sudo apt autoremove -y
@@ -109,10 +112,7 @@ sudo apt autoclean
 
 The reboot matters, kernel updates require a restart to take effect.
 
-**3. Re-enable Secure Boot**
-Go back into BIOS and re-enable Secure Boot. It protects against boot-level malware.
-
-**4. Install Timeshift (essential)**
+**3. Install Timeshift (essential)**
 
 ```bash
 sudo apt install timeshift -y
@@ -120,7 +120,9 @@ sudo apt install timeshift -y
 
 Open it from the application menu, choose RSYNC as the backup type, set a destination (preferably an external drive or separate partition), and create your first snapshot immediately. It's the Linux equivalent of Windows System Restore.
 
-**5. Account integration (optional)**
+Timeshift protects system files and settings, not your personal files: home folders are excluded by default. For documents and photos use a real backup tool, e.g. Déjà Dup (`sudo apt install deja-dup`).
+
+**4. Account integration (optional)**
 Settings → Online Accounts to connect Google or Microsoft (calendar, contacts, cloud). Firefox Sync is configured separately in Firefox settings.
 
 ---
@@ -134,16 +136,18 @@ This guide uses **Flatpak** as the first choice for desktop apps because version
 ### Set up Flatpak
 
 ```bash
-sudo apt install flatpak -y
-sudo apt install gnome-software-plugin-flatpak -y
+sudo apt install flatpak gnome-software-plugin-flatpak -y
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 sudo reboot
 ```
 
+The plugin also installs GNOME Software ("Software"), next to the preinstalled App Center: Flatpak apps show up in Software, not in App Center.
+
 ### Essential system components
 
 ```bash
-# Multimedia codecs and proprietary drivers
+# Multimedia codecs, Microsoft fonts and unrar
+# (a license screen for the fonts appears: accept it with Tab and Enter)
 sudo apt install ubuntu-restricted-extras -y
 
 # Fonts for better Microsoft Office document compatibility
@@ -152,8 +156,8 @@ sudo apt install fonts-crosextra-caladea fonts-crosextra-carlito -y
 # Video thumbnails in the file manager
 sudo apt install ffmpegthumbnailer -y
 
-# Archive format support
-sudo apt install unrar p7zip-full p7zip-rar -y
+# 7z archive support (rar is already covered by ubuntu-restricted-extras)
+sudo apt install 7zip 7zip-rar -y
 ```
 
 ---
@@ -162,7 +166,7 @@ sudo apt install unrar p7zip-full p7zip-rar -y
 
 ### NVIDIA GPU (for laptops like ASUS TUF F15)
 
-If you are in WSL2 on Windows go directly to CUDA Toolkit, you have to install NVIDIA drivers on Windows.
+If you are in WSL2 on Windows, skip this section: install the NVIDIA driver on Windows and follow [GPU and CUDA on WSL2](#gpu-and-cuda-on-wsl2).
 
 **Option 1 — Ubuntu Driver Manager (recommended for beginners)**
 
@@ -184,29 +188,29 @@ nvidia-smi
 
 #### CUDA Toolkit
 
-Required for GPU-accelerated computing (AI/ML, video editing, simulations).
+Needed only to compile CUDA code (e.g. llama.cpp in [section 10](#local-ai-with-llamacpp)). PyTorch installed with pip, uv or conda ships its own CUDA libraries and only needs the driver.
 
 ```bash
 sudo apt install nvidia-cuda-toolkit -y
 nvcc --version
 ```
 
-The apt package installs into `/usr/bin`, so no PATH changes are needed.
+The apt package (CUDA 12.0) installs into `/usr/bin`, so no PATH changes are needed.
 
 For a specific CUDA version, download directly from [developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads). Only in that case, add CUDA to your PATH in `~/.zshrc` or `~/.bashrc`:
 
 ```bash
 export PATH=/usr/local/cuda/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 ```
 
 ### ASUS laptops — asusctl
 
 `asusctl` lets you control fan curves, performance profiles, and battery charge limits. **Important**: it's not available in Ubuntu's official repositories and does not officially support Ubuntu. It needs to be compiled from source.
 
-If you want to try it, find the official build instructions at [asus-linux.org](https://asus-linux.org/guides/asusctl-install/) or community-built scripts for Ubuntu 24.04 at [github.com/dariomncs/asus-ubuntu](https://github.com/dariomncs/asus-ubuntu). Test on a non-critical system first.
+If you want to try it, follow the build instructions linked from [asus-linux.org](https://asus-linux.org/guides/asusctl-install/). Test on a non-critical system first.
 
-
+---
 
 ## 5. Desktop Customization
 
@@ -228,18 +232,18 @@ In Settings → Ubuntu Desktop you can disable "Window Tiling" if you prefer cla
 
 Recommended extensions (install via Extension Manager):
 
-- **Disable Ubuntu Dock** — cleaner overview mode
+- **Ubuntu Dock** — preinstalled system extension: turn it off in Extension Manager (Installed tab) for a cleaner overview mode
 - **GSConnect** — Android integration: file sharing, notifications, SMS
-- **Clipboard Indicator** — clipboard history with `Super + W`
+- **Clipboard Indicator** — clipboard history (default shortcut `Ctrl + F9`, I remapped it to `Super + W`)
 - **Removable Drive Menu** — quick access to USB drives and external disks
-- **DDTerm** — drop-down terminal with `Super + ~`
+- **DDTerm** — drop-down terminal (default shortcut `F12`, I remapped it to `Super + ~`)
 - **Top Bar Organizer** — customize the top bar layout
 
 ### Firefox — Container tabs
 
 One of Firefox's most useful features: each container has separate cookies and sessions.
 
-Right-click the `+` button → Manage Containers, create containers for Work, Personal, Shopping, etc. You can have multiple Google accounts or social media accounts open in parallel without interference.
+Install Mozilla's [Firefox Multi-Account Containers](https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/) add-on, then right-click the `+` button → Manage Containers, and create containers for Work, Personal, Shopping, etc. You can have multiple Google accounts or social media accounts open in parallel without interference.
 
 ---
 
@@ -278,12 +282,14 @@ Edit `~/.zshrc`, find the line `plugins=(git)` and replace it:
 plugins=(
   git
   zsh-autosuggestions
-  zsh-syntax-highlighting
   sudo                   # press Esc twice to add/remove sudo
   colored-man-pages
   command-not-found
+  zsh-syntax-highlighting   # must be the last plugin
 )
 ```
+
+The Oh My Zsh installer already offers to make zsh your default shell. If you skipped that step:
 
 ```bash
 chsh -s $(which zsh)    # set zsh as the default shell
@@ -317,23 +323,20 @@ sudo apt install nnn -y
 sudo apt install ripgrep fd-find -y
 echo "alias fd='fdfind'" >> ~/.zshrc
 
-# System info (actively maintained neofetch replacement)
-sudo apt install fastfetch -y
-
 source ~/.zshrc
 ```
 
+On newer Ubuntu releases (25.04 and later) you can also install fastfetch, an actively maintained neofetch replacement: `sudo apt install fastfetch`.
+
 ### Terminal font
 
-A good programming font improves readability and supports ligatures. Download [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) or [Fira Code](https://github.com/tonsky/FiraCode), then:
+A good programming font improves readability. JetBrains Mono and Fira Code are in the Ubuntu repositories:
 
 ```bash
-mkdir -p ~/.local/share/fonts
-cp ~/Downloads/JetBrainsMono-*.ttf ~/.local/share/fonts/
-fc-cache -f -v
+sudo apt install fonts-jetbrains-mono fonts-firacode -y
 ```
 
-Configure in GNOME Terminal: Preferences → Profiles → Font.
+Configure in GNOME Terminal: Preferences → Profiles → Font. Their ligatures work in editors like VS Code, not in GNOME Terminal.
 
 ---
 
@@ -348,7 +351,7 @@ sudo apt install vlc -y
 # Markdown editor
 flatpak install flathub org.gnome.gitlab.somas.Apostrophe -y
 
-# Project management
+# To-do list
 flatpak install flathub io.github.alainm23.planify -y
 
 # Video conferencing
@@ -361,51 +364,47 @@ flatpak install flathub com.github.jeromerobert.pdfarranger -y
 flatpak install flathub org.gnome.Boxes -y
 ```
 
+---
+
 ## 8. Development Environment
 
 ### Build tools
 
-Install these first, many things depend on them to compile from source.
+Install these first: they're needed to compile software from source (e.g. llama.cpp in section 10).
 
 ```bash
 sudo apt install build-essential -y
-sudo apt install libssl-dev libffi-dev libncurses5-dev zlib1g-dev \
-                 libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
-                 libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev \
-                 libffi-dev liblzma-dev -y
 ```
 
 ### VS Code
 
+Download the `.deb` package from [code.visualstudio.com](https://code.visualstudio.com/Download), then:
+
 ```bash
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
-  gpg --dearmor > packages.microsoft.gpg
-sudo install -D -o root -g root -m 644 packages.microsoft.gpg \
-  /etc/apt/keyrings/packages.microsoft.gpg
-
-echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] \
-  https://packages.microsoft.com/repos/code stable main" | \
-  sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
-
-rm -f packages.microsoft.gpg
-sudo apt install apt-transport-https -y
-sudo apt update
-sudo apt install code -y
+sudo apt install ~/Downloads/code_*.deb
 ```
+
+During the installation you are asked whether to add Microsoft's repository: say yes, so VS Code updates together with the rest of the system.
 
 ### Python — uv
 
-uv is a Python package and environment manager written in Rust, orders of magnitude faster than pip. It's become the recommended tool for most modern Python projects.
+uv is a Python package and environment manager written in Rust, orders of magnitude faster than pip. I recommend it for most modern Python projects.
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-# The installer automatically updates PATH in your shell profile.
-# If it doesn't work, add manually:
+The installer adds `~/.local/bin` to your PATH. Open a new terminal and check:
+
+```bash
+uv --version
+```
+
+If the command is not found, add it manually:
+
+```bash
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
-
-uv --version
 ```
 
 Basic usage:
@@ -419,7 +418,7 @@ uv python install 3.12     # install a specific Python version
 
 ### Python — Miniconda (alternative for data science)
 
-If you work heavily with data and have complex dependencies (numpy, pytorch, etc.), Conda handles non-Python packages like drivers and system libraries better.
+If you work heavily with data and have complex dependencies (numpy, pytorch, etc.), Conda also manages non-Python libraries, such as the CUDA runtime and C/C++ libraries.
 
 ```bash
 mkdir -p ~/miniconda3
@@ -441,6 +440,7 @@ conda activate myenv
 conda install numpy pandas matplotlib
 conda deactivate
 ```
+
 ---
 
 ## 9. Gaming
@@ -508,7 +508,7 @@ AppImages are portable executables that run on any Linux distro without installa
 
 ```bash
 # Required for AppImage compatibility
-sudo apt install libfuse2 -y
+sudo apt install libfuse2t64 -y
 
 # AppImage manager with desktop integration
 flatpak install flathub it.mijorus.gearlever -y
@@ -518,7 +518,7 @@ To use an AppImage without Gear Lever:
 
 ```bash
 chmod +x ~/Downloads/App.AppImage
-./App.AppImage
+~/Downloads/App.AppImage
 ```
 
 With Gear Lever: open the app, drag in the AppImage or open it with "Unlock", then "Add to menu" to integrate it in the launcher like a regular app.
@@ -526,30 +526,30 @@ With Gear Lever: open the app, drag in the AppImage or open it with "Unlock", th
 ### Docker
 
 ```bash
-sudo apt install docker.io -y
+sudo apt install docker.io docker-compose-v2 -y   # docker-compose-v2 provides `docker compose`
+sudo systemctl enable --now docker
 sudo usermod -aG docker $USER   # avoid needing sudo every time
-sudo systemctl enable docker
-sudo systemctl start docker
+```
 
-# log out and back in to apply group changes
+Members of the `docker` group have root-equivalent access to the system. Log out and back in to apply the group change, then:
+
+```bash
 docker --version
 docker run hello-world
-
-sudo apt install docker-compose-v2 -y   # provides `docker compose`
 ```
 
 ### Local AI with llama.cpp
 
-Run language models directly on your machine: no internet, no API key, no data sent anywhere.
+Run language models directly on your machine: once a model is downloaded, no internet, no API key, no data sent anywhere.
 I also suggest starting with a GUI app such as LM Studio (available as an AppImage). It includes many features and shows, before downloading, whether a model will run on your machine.
 
-Install llama.cpp:
+Install llama.cpp (needs the build tools from section 8; the CUDA build also needs the CUDA Toolkit from section 4):
 ```bash
 cd ~
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 
-sudo apt install cmake libcurl4-openssl-dev -y
+sudo apt install cmake libssl-dev -y
 
 # Build with CUDA (NVIDIA GPU)
 cmake -B build -DGGML_CUDA=ON
@@ -558,11 +558,21 @@ cmake --build build --config Release -j$(nproc)
 # CPU-only build: omit the -DGGML_CUDA=ON flag
 ```
 
+Run a model (it's downloaded from Hugging Face on first use):
+
+```bash
+# chat in the terminal
+./build/bin/llama-cli -hf ggml-org/Qwen3.5-0.8B-GGUF
+
+# or start a server with a web UI at http://localhost:8080
+./build/bin/llama-server -hf ggml-org/Qwen3.5-0.8B-GGUF
+```
+
 ---
 
 ## 11. GRUB and Dual Boot
 
-If you dual-boot with Windows, GRUB is the menu that appears at startup. You can configure it to remember the last OS choice and hide the menu by default.
+If you dual-boot with Windows, GRUB is the menu that appears at startup. You can configure it to remember the last OS choice.
 
 **Always back up before touching GRUB**:
 
@@ -576,18 +586,17 @@ sudo cp /etc/default/grub /etc/default/grub.backup
 sudo nano /etc/default/grub
 ```
 
-Recommended configuration for dual boot:
+Recommended configuration for dual boot. Change only these lines (add them if missing) and leave the rest as it is:
 
 ```bash
-GRUB_DEFAULT=saved          # remember last choice
+GRUB_DEFAULT=saved             # remember last choice
 GRUB_SAVEDEFAULT=true
-GRUB_TIMEOUT=5              # seconds to wait
-GRUB_TIMEOUT_STYLE=hidden   # hide menu (press ESC to show it)
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
-GRUB_CMDLINE_LINUX=""
-GRUB_DISABLE_OS_PROBER=false   # detect Windows (disabled by default on 24.04)
+GRUB_TIMEOUT=5                 # seconds to wait
+GRUB_TIMEOUT_STYLE=menu        # always show the menu
+GRUB_DISABLE_OS_PROBER=false   # always look for Windows (Ubuntu's default "auto" may skip it)
 ```
+
+`GRUB_TIMEOUT_STYLE=hidden` has no effect in dual boot: when Ubuntu finds another operating system, it always shows the menu.
 
 **Apply changes**:
 
@@ -596,7 +605,7 @@ sudo update-grub
 sudo reboot
 ```
 
-At boot: `ESC` shows the hidden menu, `↑/↓` to navigate, `Enter` to boot.
+At boot: `↑/↓` to navigate, `Enter` to boot.
 
 **If something goes wrong**:
 
@@ -611,9 +620,6 @@ sudo update-grub && sudo reboot
 # Change GRUB resolution — add to /etc/default/grub:
 GRUB_GFXMODE=1920x1080
 GRUB_GFXPAYLOAD_LINUX=keep
-
-# Always show menu (no hiding)
-GRUB_TIMEOUT_STYLE=menu
 
 # Show all kernels in the main menu
 GRUB_DISABLE_SUBMENU=y
@@ -635,13 +641,13 @@ ls -la > list.txt               # overwrite
 ls -la >> list.txt              # append
 
 # Discard errors
-command 2>/dev/null
+cmd 2>/dev/null
 
 # Save both output and errors
-command > all.txt 2>&1
+cmd > all.txt 2>&1
 
 # Pipe: pass output of one command as input to the next
-ls -la | grep ".txt"            # filter for .txt only
+ls -la | grep '\.txt'           # filter for .txt only
 ps aux | grep firefox           # find the firefox process
 cat file.txt | sort | uniq      # sort and remove duplicates
 ```
@@ -659,7 +665,7 @@ find . -type d              # directories only
 
 # by size
 find . -size +100M          # files larger than 100MB
-find . -size -1k            # files smaller than 1KB
+find . -size -1024c         # files smaller than 1KB
 
 # find and do something
 find . -name "*.log" -delete               # delete all .log files
@@ -674,7 +680,7 @@ grep -r "word" folder/            # recursive search
 grep -i "word" file.txt           # case insensitive
 grep -n "word" file.txt           # show line numbers
 grep -v "word" file.txt           # show lines that do NOT contain it
-grep -c "word" file.txt           # count occurrences
+grep -c "word" file.txt           # count matching lines
 
 # with pipe
 journalctl | grep -i "error"
@@ -706,7 +712,7 @@ sed -n '5,10p' file.txt            # print only lines 5-10
 ### xargs — pass output as arguments
 
 ```bash
-find . -name "*.tmp" | xargs rm                        # delete all .tmp files
+find . -name "*.tmp" -print0 | xargs -0 rm             # delete all .tmp files (safe with spaces in names)
 cat list.txt | xargs -I {} echo "Processing: {}"       # run a command per line
 cat urls.txt | xargs -P 4 -I {} wget {}                # parallel, 4 at a time
 ```
@@ -729,8 +735,8 @@ Main shortcuts (prefix: `Ctrl+B`):
 ```
 Ctrl+B c        new window
 Ctrl+B n / p    next / previous window
-Ctrl+B %        split vertically
-Ctrl+B "        split horizontally
+Ctrl+B %        split into left / right panes
+Ctrl+B "        split into top / bottom panes
 Ctrl+B arrows   navigate between panes
 Ctrl+B d        detach (session stays alive)
 Ctrl+B [        scroll mode (q to exit)
@@ -772,7 +778,6 @@ ncdu                          # interactive disk analyzer
 journalctl -f                 # real-time
 journalctl -u service-name    # specific service
 journalctl --since "1 hour ago"
-
 ```
 
 ---
@@ -786,18 +791,17 @@ WSL2 (Windows Subsystem for Linux 2) runs a real Linux kernel inside Windows, no
 On Windows 11, open PowerShell as administrator:
 
 ```powershell
-wsl --install
+wsl --install -d Ubuntu-24.04
 ```
 
-This installs WSL2 with Ubuntu by default. Reboot when prompted.
+This installs WSL2 with Ubuntu 24.04. Reboot when prompted. A plain `wsl --install` installs the generic `Ubuntu` distro, which follows the latest LTS.
 
-Often you have to redo wsl --install after the reboot to actually download and install the distro. 
+Often you have to redo `wsl --install` after the reboot to actually download and install the distro.
 
 To choose a different distribution:
 
 ```powershell
 wsl --list --online              # see available distros
-wsl --install -d Ubuntu-24.04
 wsl --install -d Debian
 ```
 
@@ -805,7 +809,8 @@ Upgrading from WSL1:
 
 ```powershell
 wsl --set-default-version 2
-wsl --set-version Ubuntu 2
+wsl -l -v                        # see your distro names
+wsl --set-version Ubuntu-24.04 2
 ```
 
 ### First launch
@@ -828,7 +833,6 @@ cp file.txt /mnt/c/Users/YourName/Desktop/
 From Windows Explorer, access Linux files by typing `\\wsl$` in the address bar.
 
 > Keep Linux project files inside the Linux filesystem (`~/`). Operations on `/mnt/c/` are significantly slower.
-
 
 ### VS Code integration
 
@@ -854,14 +858,22 @@ sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt update
 sudo apt install cuda-toolkit-12-6 -y
 
-nvidia-smi    # verify
+nvidia-smi    # verify that the Windows driver is visible
+```
+
+The toolkit installs into `/usr/local/cuda`, which is not in your PATH. Add it to `~/.bashrc` (or `~/.zshrc`) and verify:
+
+```bash
+echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+nvcc --version
 ```
 
 ---
 
 ## Disclaimer
 
-The commands in this guide modify your system: you run them at your own risk, and I am not responsible for data loss, system instability or hardware damage. Back up with Timeshift before major changes, test in a VM when possible, and refer to the official documentation ([Ubuntu](https://help.ubuntu.com/), [NVIDIA](https://docs.nvidia.com/)) and to the licenses of the third-party software you install.
+The commands in this guide modify your system: you run them at your own risk, and I am not responsible for data loss, system instability or hardware damage. Take a Timeshift snapshot before major changes and keep a separate backup of your personal files, test in a VM when possible, and refer to the official documentation ([Ubuntu](https://help.ubuntu.com/), [NVIDIA](https://docs.nvidia.com/)) and to the licenses of the third-party software you install.
 
 ---
 
